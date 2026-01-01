@@ -1,19 +1,20 @@
-import loginTest from './login.cy';
+import loginTest from '../../Pages/Login';
 
 describe('Login Tests', () => {
     beforeEach(() => {  
         cy.visit('https://dashboard.dev.transax.com/auth/login', { failOnStatusCode: false });
     });
     
+   
     it('should login successfully', () => {
-        const username = Cypress.env('username');
-        const password = Cypress.env('password');
+        const dev_username = Cypress.env('dev_username');
+        const dev_password = Cypress.env('dev_password');
         
         // Verify environment variables are loaded
-        expect(username, 'Username should be defined').to.not.be.undefined;
-        expect(password, 'Password should be defined').to.not.be.undefined;
+        expect(dev_username, 'Username should be defined').to.not.be.undefined;
+        expect(dev_password, 'Password should be defined').to.not.be.undefined;
         
-        loginTest.login(username, password);
+        loginTest.login(dev_username, dev_password);
     });
 
    

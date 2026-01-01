@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "cypress:open": "cypress open",
+    "cypress:open:staging": "cypress open --config-file cypress.staging.config.js",
+    "cypress:run": "cypress run",
+    "cypress:run:staging": "cypress run --config-file cypress.staging.config.js"
   },
   "keywords": [],
   "author": "",
