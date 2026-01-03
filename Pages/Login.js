@@ -6,9 +6,9 @@ class login {
 
           selector = {
 
-            username : '#input-v-0-1',
+            username : 'input[type="text"',
 
-            password : '#input-v-0-4',
+            password : 'input[type="password"',
 
             loginButton : '#__nuxt > div > main > div:nth-child(3) > form > button',
             

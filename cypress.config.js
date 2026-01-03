@@ -9,7 +9,9 @@ module.exports = defineConfig({
   videoUploadOnPasses: false,
   videoCompression: 32,
   videoUploadOnFailures: true,
-  
+  experimentalSessionAndOrigin: true,
+
+
   e2e: {
     setupNodeEvents(on, config) {
       // implement node event listeners here

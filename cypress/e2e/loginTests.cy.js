@@ -3,9 +3,10 @@ import loginTest from '../../Pages/Login';
 describe('Login Tests', () => {
     beforeEach(() => {  
         cy.visit('https://dashboard.dev.transax.com/auth/login', { failOnStatusCode: false });
+        // Wait until login page is truly ready
+  cy.location('pathname', { timeout: 10000 }).should('include', '/auth/login');
     });
     
-   
     it('should login successfully', () => {
         const dev_username = Cypress.env('dev_username');
         const dev_password = Cypress.env('dev_password');
@@ -16,8 +17,6 @@ describe('Login Tests', () => {
         
         loginTest.login(dev_username, dev_password);
     });
-
-   
 });
 
 
