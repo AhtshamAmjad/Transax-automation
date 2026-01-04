@@ -4,6 +4,7 @@ import { getConversationUser } from '../support/testData/conversation.Data';
 
 beforeEach(() => {
     cy.visit('/auth/login', { failOnStatusCode: false });
+    cy.wait(10000);
     loginTest.login(Cypress.env('dev_username'), Cypress.env('dev_password'));
 });
 
