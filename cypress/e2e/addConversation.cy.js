@@ -16,7 +16,7 @@ describe('Add Conversation', () => {
   });
 
   //creates conversation with phone number
-  it('creates conversation with phone number', () => {
+  it('#TC-01 - creates conversation with phone number', () => {
     const user = getConversationUser();
 
     AddConversationPage.addConversation(
@@ -35,7 +35,7 @@ describe('Add Conversation', () => {
   });
 
   //creates conversation with email
-  it('creates conversation with email', () => {
+  it('#TC-02 - creates conversation with email', () => {
     const user = getConversationUser();
 
     AddConversationPage.addConversation(
@@ -54,7 +54,7 @@ describe('Add Conversation', () => {
   });
 
   //creates conversation with both phone number and email
-  it('creates conversation with both phone number and email', () => {
+  it('#TC-03 - creates conversation with both phone number and email', () => {
     const user = getConversationUser();
 
     AddConversationPage.addConversation(

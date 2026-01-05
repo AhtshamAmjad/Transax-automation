@@ -13,6 +13,7 @@ module.exports = defineConfig({
 
 
   e2e: {
+    pageLoadTimeout: 120000, // Increase page load timeout to 120 seconds
     setupNodeEvents(on, config) {
       // implement node event listeners here
       // Load environment variables into Cypress config

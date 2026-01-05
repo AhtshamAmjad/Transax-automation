@@ -17,14 +17,14 @@ describe('Contacts Page', () => {
         cy.wait(10000);
     });
 
-    it('should add a contact', () => {
+    it('#TC-01 - should add a contact', () => {
         const user = getConversationUser();
         ContactsPage.addContact(user.firstName, user.lastName, user.email, user.phone, 'Chicago');
         //ContactsPage.assertContactAdded(user.firstName, user.lastName);
         //ContactsPage.assertContactModalClosed();
     });
 
-    it('should update a contact', () => {
+    it('#TC-02 - should update a contact', () => {
         // Wait for contact list to load
         cy.get('#__nuxt > div.v-layout.layout > main > div > div > div.container > div.content > div.v-table.v-table--has-top.v-table--has-bottom.v-theme--transaxLightTheme.v-table--density-default.v-data-table.elevation-0').should('be.visible', { timeout: 10000 });
         
@@ -38,7 +38,7 @@ describe('Contacts Page', () => {
         ContactsPage.assertContactUpdated(updatedUser.firstName, updatedUser.lastName);
     });
 
-    it('should search for a contact', () => {
+    it('#TC-03 - should search for a contact', () => {
         // First, create a contact to search for
         const user = getConversationUser();
         ContactsPage.addContact(user.firstName, user.lastName, user.email, user.phone, 'Chicago');
@@ -66,7 +66,7 @@ describe('Contacts Page', () => {
         ContactsPage.assertContactFound(user.firstName, user.lastName);
     });
 
-    it('should archive a contact', () => {
+    it('#TC-04 - should archive a contact', () => {
         // First, create a contact to archive
         const user = getConversationUser();
         ContactsPage.addContact(user.firstName, user.lastName, user.email, user.phone, 'Chicago');
@@ -82,7 +82,7 @@ describe('Contacts Page', () => {
         cy.get('#__nuxt > div.v-layout.layout > main > div > div > div.container > div.content > div.v-table.v-table--has-top.v-table--has-bottom.v-theme--transaxLightTheme.v-table--density-default.v-data-table.elevation-0').should('be.visible', { timeout: 10000 });
     });
 
-    it('should navigate to archived section and verify archived contact', () => {
+    it('#TC-05 - should navigate to archived section and verify archived contact', () => {
         // Navigate to the Archived section
         ContactsPage.navigateToArchivedSection();
         
