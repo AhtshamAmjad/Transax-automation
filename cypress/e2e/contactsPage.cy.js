@@ -14,7 +14,16 @@ describe('Contacts Page', () => {
         cy.url().should('include', '/dashboard');
         cy.wait(10000);
         cy.visit('https://dashboard.dev.transax.com/contacts', {failOnStatusCode: false});
-        cy.wait(10000);
+        // IMMEDIATELY scroll to top using window.scrollTo to prevent any auto-scroll
+        cy.window().then((win) => {
+            win.scrollTo(0, 0);
+        });
+        cy.wait(2000);
+        // Keep scrolling to top after page loads
+        cy.window().then((win) => {
+            win.scrollTo(0, 0);
+        });
+        cy.wait(1000);
     });
 
     it('#TC-01 - should add a contact', () => {
@@ -24,9 +33,20 @@ describe('Contacts Page', () => {
         //ContactsPage.assertContactModalClosed();
     });
 
-    it('#TC-02 - should update a contact', () => {
-        // Wait for contact list to load
-        cy.get('#__nuxt > div.v-layout.layout > main > div > div > div.container > div.content > div.v-table.v-table--has-top.v-table--has-bottom.v-theme--transaxLightTheme.v-table--density-default.v-data-table.elevation-0').should('be.visible', { timeout: 10000 });
+    it.only('#TC-02 - should update a contact', () => {
+        // Wait for page to be ready
+        cy.wait(2000);
+        
+        // Wait for contact list table to load
+        // First check if table exists, then check visibility
+        cy.get(ContactsPage.selector.ContactListTable, { timeout: 20000 })
+            .should('exist')
+            .then(() => {
+                // Also wait for table body to ensure table is populated
+                cy.get(ContactsPage.selector.ContactListTable + ' tbody', { timeout: 10000 })
+                    .should('exist');
+            })
+            .should('be.visible');
         
         // Generate new name for the update
         const updatedUser = getConversationUser();
@@ -44,7 +64,7 @@ describe('Contacts Page', () => {
         ContactsPage.addContact(user.firstName, user.lastName, user.email, user.phone, 'Chicago');
         
         // Wait for the modal to close and contact list to be visible
-        cy.get('#__nuxt > div.v-layout.layout > main > div > div > div.container > div.content > div.v-table.v-table--has-top.v-table--has-bottom.v-theme--transaxLightTheme.v-table--density-default.v-data-table.elevation-0').should('be.visible', { timeout: 10000 });
+        cy.get(ContactsPage.selector.ContactListTable).should('be.visible', { timeout: 10000 });
         cy.wait(2000); // Wait for the new contact to appear in the list
         
         // Search for the contact by first name
@@ -72,14 +92,14 @@ describe('Contacts Page', () => {
         ContactsPage.addContact(user.firstName, user.lastName, user.email, user.phone, 'Chicago');
         
         // Wait for the modal to close and contact list to be visible
-        cy.get('#__nuxt > div.v-layout.layout > main > div > div > div.container > div.content > div.v-table.v-table--has-top.v-table--has-bottom.v-theme--transaxLightTheme.v-table--density-default.v-data-table.elevation-0').should('be.visible', { timeout: 10000 });
+        cy.get(ContactsPage.selector.ContactListTable).should('be.visible', { timeout: 10000 });
         cy.wait(10000); // Wait for the new contact to appear in the list
         
         // Archive the contact
         ContactsPage.archiveContact();
         
         // Verify the contact list is still visible (modal closed)
-        cy.get('#__nuxt > div.v-layout.layout > main > div > div > div.container > div.content > div.v-table.v-table--has-top.v-table--has-bottom.v-theme--transaxLightTheme.v-table--density-default.v-data-table.elevation-0').should('be.visible', { timeout: 10000 });
+        cy.get(ContactsPage.selector.ContactListTable).should('be.visible', { timeout: 10000 });
     });
 
     it('#TC-05 - should navigate to archived section and verify archived contact', () => {

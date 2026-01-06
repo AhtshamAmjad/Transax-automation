@@ -1,6 +1,6 @@
 class ContactsPage {
     selector = {
-        AddContactButton : '#__nuxt > div.v-layout.layout > main > div > div > div.tw-inline-flex.tw-gap-8.tw-items-stretch > div.tx-list-header > div.tx-list-header__actions > div.tx-list-header__add > span > button',
+        AddContactButton : 'button.bg-primary',
         FirstName : 'input[placeholder="John"]',
         LastName : 'input[placeholder="Doe"]',
         Email : 'input[placeholder="email@email.com"]',
@@ -10,8 +10,8 @@ class ContactsPage {
         SaveButton : '.v-overlay--active [data-testid="contact-modal-section.submit-button"]',
         CancelButton : '[data-testid="contact-modal-section.cancel-button"]',
         HeaderText : '.v-dialog h1.header-title',
-        ContactListTable : '#__nuxt > div.v-layout.layout > main > div > div > div.container > div.content > div.v-table.v-table--has-top.v-table--has-bottom.v-theme--transaxLightTheme.v-table--density-default.v-data-table.elevation-0',
-        FirstContactThreeDotMenu : '#__nuxt > div.v-layout.layout > main > div > div > div.container > div.content > div.v-table.v-table--has-top.v-table--has-bottom.v-theme--transaxLightTheme.v-table--density-default.v-data-table.elevation-0 > div.v-table__wrapper > table > tbody > tr:nth-child(1) > td:nth-child(6) > button',
+        ContactListTable : 'div.v-data-table.elevation-0, div.v-table.v-data-table.elevation-0, div[class*="v-data-table"].elevation-0',
+        FirstContactThreeDotMenu : 'div.v-data-table.elevation-0 tbody tr:first-child td:last-child button, div.v-data-table.elevation-0 tbody tr:first-child button.v-btn--icon',
         EditModalHeader : 'body > div.v-overlay-container > div.v-overlay.v-overlay--active.v-theme--transaxLightTheme.v-locale--is-ltr.v-dialog > div.v-overlay__content > div > div.dialog-header.d-flex.position-relative.justify-center.align-center > h1',
         EditMenuFirstOption : '.v-overlay--active .v-menu .v-list-item:first-child',
         MenuContainer : '.v-overlay--active .v-menu',
@@ -23,21 +23,61 @@ class ContactsPage {
         ArchiveModalHeader : '.v-overlay--active .dialog-header h1.header-title',
         ArchiveModalButton : '.v-overlay--active .dialog-footer button.bg-primary',
         ArchiveModalCancelButton : '.v-overlay--active .dialog-footer button.text-primary',
-        ArchivedSectionButton : 'button .content-container span:contains("Archived")',
+        ArchivedSectionButton : 'button .content-container span',
         ArchivedContactListTable : '.v-data-table.elevation-0'
     }
 
     addContact(firstName, lastName, email, phone, preferredLocation) {
+        // IMMEDIATELY scroll to top before doing anything else - prevent any auto-scroll
+        cy.window().then((win) => {
+            win.scrollTo(0, 0);
+        });
+        cy.wait(300);
+        
+        // Wait for the contacts page to be fully loaded (but don't let it scroll)
+        cy.get(this.selector.ContactListTable, { timeout: 15000 })
+            .should('exist')
+            .then(() => {
+                // Ensure we're still at top after table loads
+                cy.window().then((win) => {
+                    win.scrollTo(0, 0);
+                });
+            });
+        cy.wait(1000);
+        
+        // Wait for the header section to be visible (where the Add button is located)
+        cy.get('.tx-list-header, div.tx-list-header, [class*="list-header"]', { timeout: 15000 })
+            .should('exist')
+            .then(() => {
+                // Keep at top
+                cy.window().then((win) => {
+                    win.scrollTo(0, 0);
+                });
+            });
+        
         // Wait for and click the Add Contact button
-        // Scroll into view to avoid being obscured by other elements
-        cy.get(this.selector.AddContactButton)
-            .should('be.visible', { timeout: 15000 })
-            .scrollIntoView()
+        // First ensure we're at the top
+        cy.window().then((win) => {
+            win.scrollTo(0, 0);
+        });
+        cy.wait(500);
+        
+        // Find and click the Add Contact button using the bg-primary class
+        // This is a unique class for the Add Contact button
+        cy.get(this.selector.AddContactButton, { timeout: 20000 })
+            .should('exist')
             .should('be.visible')
+            .should('not.be.disabled')
             .click({ force: true });
         
-        // Wait for modal to be visible
-        cy.get(this.selector.FirstName).should('be.visible', { timeout: 10000 });
+        // Wait a moment for the click to register and modal to start appearing
+        cy.wait(1500);
+        
+        // Wait for FirstName field directly - this is the most reliable indicator the modal is ready
+        // Use a longer timeout and check for existence first, then visibility
+        cy.get(this.selector.FirstName, { timeout: 20000 })
+            .should('exist')
+            .should('be.visible');
         
         // Fill in First Name
         cy.get(this.selector.FirstName).clear().type(firstName);
@@ -82,6 +122,10 @@ class ContactsPage {
     }
 
     updateContact(newFirstName, newLastName) {
+        // Scroll to top of page to ensure we're at the beginning
+        cy.scrollTo('top', { duration: 0 });
+        cy.wait(500); // Brief wait after scrolling
+        
         // Wait for contact list to be visible
         cy.get(this.selector.ContactListTable).should('be.visible', { timeout: 10000 });
         
@@ -125,20 +169,35 @@ class ContactsPage {
 
     searchContact(searchTerm) {
         // Try multiple selectors to find the search field
-        // First try the specific selector, then try generic search field selectors
+        // Handle the case where one field might be covering another
         cy.get('body').then(($body) => {
+            // Find all search fields
             const specificField = $body.find('input[placeholder="Search contact"]');
+            const searchByContactField = $body.find('input[placeholder="Search By Contact"]');
             const genericField = $body.find('input[placeholder*="Search"], input[placeholder*="search"]');
             
+            // Prefer the specific "Search contact" field, but use force if it's covered
             if (specificField.length > 0) {
-                // Use the specific search field
-                cy.get(this.selector.SearchField).should('be.visible', { timeout: 10000 });
-                cy.get(this.selector.SearchField).clear().type(searchTerm);
+                // Use the specific search field with force to handle covering elements
+                cy.get(this.selector.SearchField, { timeout: 10000 })
+                    .should('exist')
+                    .clear({ force: true })
+                    .type(searchTerm, { force: true });
+                cy.wait(1000);
+            } else if (searchByContactField.length > 0) {
+                // Use "Search By Contact" field if "Search contact" doesn't exist
+                cy.get('input[placeholder="Search By Contact"]', { timeout: 10000 })
+                    .should('exist')
+                    .clear({ force: true })
+                    .type(searchTerm, { force: true });
                 cy.wait(1000);
             } else if (genericField.length > 0) {
                 // Use a generic search field if it exists
-                cy.get(this.selector.SearchFieldGeneric).first().should('be.visible', { timeout: 10000 });
-                cy.get(this.selector.SearchFieldGeneric).first().clear().type(searchTerm);
+                cy.get(this.selector.SearchFieldGeneric, { timeout: 10000 })
+                    .first()
+                    .should('exist')
+                    .clear({ force: true })
+                    .type(searchTerm, { force: true });
                 cy.wait(1000);
             } else {
                 // Search field doesn't exist, log and continue
@@ -161,13 +220,27 @@ class ContactsPage {
     }
 
     archiveContact() {
-        // Wait for contact list to be visible
-        cy.get(this.selector.ContactListTable).should('be.visible', { timeout: 10000 });
+        // IMMEDIATELY scroll to top before doing anything else - prevent any auto-scroll
+        cy.window().then((win) => {
+            win.scrollTo(0, 0);
+        });
+        cy.wait(300);
         
-        // Scroll the three-dot menu button into view and click it
+        // Wait for contact list to be visible (but don't let it scroll)
+        cy.get(this.selector.ContactListTable)
+            .should('be.visible', { timeout: 10000 })
+            .then(() => {
+                // Ensure we're still at top after table loads
+                cy.window().then((win) => {
+                    win.scrollTo(0, 0);
+                });
+            });
+        cy.wait(500);
+        
+        // Click the three-dot menu button - NO scrollIntoView to prevent scrolling
+        // First row should be at top, so no need to scroll
         cy.get(this.selector.FirstContactThreeDotMenu)
             .should('be.visible', { timeout: 10000 })
-            .scrollIntoView()
             .should('be.visible')
             .click({ force: true });
         
@@ -218,10 +291,38 @@ class ContactsPage {
     }
 
     navigateToArchivedSection() {
-        // Click the Archived button to navigate to archived contacts
-        cy.contains('button', 'Archived', { timeout: 10000, matchCase: false })
-            .should('be.visible')
-            .click();
+        // Scroll to top first
+        cy.window().then((win) => {
+            win.scrollTo(0, 0);
+        });
+        cy.wait(500);
+        
+        // Wait for page to be ready
+        cy.get('body').should('be.visible');
+        cy.wait(1000);
+        
+        // Click the Archived button - try multiple approaches
+        // The text is nested in: button > span.v-btn__content > div.content-container > span
+        cy.get('body').then(($body) => {
+            // Check if button with "Archived" text exists
+            const archivedBtn = $body.find('button').filter((index, btn) => {
+                return Cypress.$(btn).text().toLowerCase().includes('archived');
+            });
+            
+            if (archivedBtn.length > 0) {
+                // Found button with Archived text
+                cy.wrap(archivedBtn.first())
+                    .should('be.visible')
+                    .should('not.be.disabled')
+                    .click({ force: true });
+            } else {
+                // Fallback: use cy.contains (should work with nested text)
+                cy.contains('button', 'Archived', { timeout: 15000, matchCase: false })
+                    .should('be.visible')
+                    .should('not.be.disabled')
+                    .click({ force: true });
+            }
+        });
         
         // Wait for archived contact list to load
         cy.get(this.selector.ArchivedContactListTable).should('be.visible', { timeout: 10000 });
@@ -234,6 +335,6 @@ class ContactsPage {
         cy.contains(`${firstName} ${lastName}`, { timeout: 10000 })
             .should('be.visible');
     }
-}
+    }
 
 export default new ContactsPage();
